@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vinyl Analyzer — BPM &amp; Camelot Key</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+<header>
+  <h1>Vinyl Analyzer</h1>
+  <p class="subtitle">Capture a snippet from your turntable speakers — get BPM, key, and Camelot code, logged to your local library.</p>
+</header>
+
+<main>
+  <section class="capture">
+    <div class="capture-row">
+      <button id="recordBtn" class="record">
+        <span class="dot"></span>
+        <span class="label">Start recording</span>
+      </button>
+      <div class="timer">
+        <span id="timer">00:00</span>
+        <span class="hint">Target: 30s</span>
+      </div>
+      <canvas id="meter" width="240" height="48" aria-label="Input meter"></canvas>
+    </div>
+    <p id="status" class="status"></p>
+  </section>
+
+  <section id="resultCard" class="result hidden">
+    <h2>Detected</h2>
+    <div class="result-grid">
+      <div class="big">
+        <span class="big-label">BPM</span>
+        <span class="big-value" id="resBpm">—</span>
+        <span class="conf" id="resBpmConf">—</span>
+      </div>
+      <div class="big">
+        <span class="big-label">Camelot</span>
+        <span class="big-value" id="resCamelot">—</span>
+        <span class="conf" id="resKey">—</span>
+      </div>
+      <div class="big">
+        <span class="big-label">Key Confidence</span>
+        <span class="big-value" id="resKeyConf">—</span>
+        <span class="conf" id="resDuration">—</span>
+      </div>
+    </div>
+    <div id="altPanel" class="alt-panel hidden">
+      <span class="alt-label">Low-confidence detection — also possible:</span>
+      <div class="alt-options">
+        <button type="button" class="alt-pick" data-pick="primary" id="altPickPrimary">
+          <span class="alt-camelot" id="altPrimaryCamelot">—</span>
+          <span class="alt-key" id="altPrimaryKey">—</span>
+          <span class="alt-share" id="altPrimaryShare">—</span>
+        </button>
+        <button type="button" class="alt-pick" data-pick="alt" id="altPickAlt">
+          <span class="alt-camelot" id="altAltCamelot">—</span>
+          <span class="alt-key" id="altAltKey">—</span>
+          <span class="alt-share" id="altAltShare">—</span>
+        </button>
+      </div>
+      <span class="alt-hint">Click the one that matches your record before saving.</span>
+    </div>
+
+    <div id="bpmAltPanel" class="alt-panel hidden">
+      <span class="alt-label">BPM candidates:</span>
+      <div class="alt-options" id="bpmCandidates"></div>
+      <span class="alt-hint">Pick the matching tempo, tap along, or type the BPM directly.</span>
+    </div>
+
+    <div class="bpm-override">
+      <button type="button" id="tapBtn" class="tap-btn">Tap tempo</button>
+      <span class="tap-meta" id="tapMeta">Tap on the beat (≥4 taps)</span>
+      <label class="manual-bpm">
+        <span>Manual BPM</span>
+        <input type="number" id="manualBpm" min="40" max="220" step="0.1" placeholder="e.g. 95.0" />
+      </label>
+    </div>
+
+    <form id="saveForm" class="save-form" autocomplete="off">
+      <div class="field">
+        <label for="trackName">Track name</label>
+        <input id="trackName" name="trackName" type="text" placeholder="e.g. Plastic Dreams" />
+      </div>
+      <div class="field">
+        <label for="artist">Artist</label>
+        <input id="artist" name="artist" type="text" placeholder="e.g. Jaydee" />
+      </div>
+      <div class="field full">
+        <label for="notes">Notes</label>
+        <input id="notes" name="notes" type="text" placeholder="optional — pressing, vibe, etc." />
+      </div>
+      <div class="actions">
+        <button type="submit" class="primary">Save to library</button>
+        <button type="button" id="discardBtn">Discard</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="library">
+    <div class="library-header">
+      <h2>Library</h2>
+      <div class="library-tools">
+        <input id="searchBox" type="search" placeholder="Search track, artist, key, Camelot, notes…" />
+        <a id="exportLink" class="button" href="/api/export">Export to Excel</a>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="tracksTable">
+        <thead>
+          <tr>
+            <th data-sort="captured_at" class="sortable">Captured</th>
+            <th data-sort="track_name" class="sortable">Track</th>
+            <th data-sort="artist" class="sortable">Artist</th>
+            <th data-sort="bpm" class="sortable">BPM</th>
+            <th data-sort="camelot" class="sortable">Camelot</th>
+            <th data-sort="key" class="sortable">Key</th>
+            <th>Conf.</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tracksBody"></tbody>
+      </table>
+      <p id="emptyState" class="empty">No tracks yet — record a snippet to get started.</p>
+    </div>
+  </section>
+</main>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

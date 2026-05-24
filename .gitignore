@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Local user data — do NOT commit your personal track library
+**/data/*.db
+**/data/*.xlsx
+vinyl_log_*.xlsx
