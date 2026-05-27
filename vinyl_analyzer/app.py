@@ -23,8 +23,8 @@ from flask import Flask, g, jsonify, render_template, request, send_file, abort
 from analyzer import analyze_bytes
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
-DATA_DIR.mkdir(exist_ok=True)
+DATA_DIR = Path(os.environ.get("VINYL_DATA_DIR", BASE_DIR / "data"))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 DB_PATH = DATA_DIR / "tracks.db"
 
 ALLOWED_SORT_COLUMNS = {
