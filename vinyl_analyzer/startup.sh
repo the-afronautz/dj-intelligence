@@ -1,21 +1,33 @@
 #!/bin/bash
-set -e
+# Note: NOT using `set -e` — we want to launch gunicorn even if optional
+# steps (like ffmpeg install) fail, so the app at least serves WAV uploads.
 
-# ffmpeg + libsndfile are needed to decode WebM/Opus clips from MediaRecorder.
-# Azure's Python App Service image is Debian-based but doesn't ship these by
-# default, so install them on first boot.
-if ! command -v ffmpeg &> /dev/null; then
-    apt-get update && apt-get install -y --no-install-recommends ffmpeg libsndfile1
-fi
+echo "[startup] beginning at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+echo "[startup] cwd=$(pwd)  whoami=$(whoami)"
+echo "[startup] PORT=${PORT:-unset}  VINYL_DATA_DIR=${VINYL_DATA_DIR:-unset}"
 
-# Ensure the SQLite parent directory exists on the persistent /home mount.
 mkdir -p "${VINYL_DATA_DIR:-/home/data}"
 
-cd "$(dirname "$0")"
+# ffmpeg + libsndfile let librosa decode WebM/Opus clips from MediaRecorder.
+# Without them the app still works for WAV uploads — so we don't abort
+# startup if the install fails.
+if command -v ffmpeg >/dev/null 2>&1; then
+    echo "[startup] ffmpeg already present"
+else
+    echo "[startup] installing ffmpeg + libsndfile1..."
+    apt-get update -y >/dev/null 2>&1 && \
+        apt-get install -y --no-install-recommends ffmpeg libsndfile1 >/dev/null 2>&1 \
+        && echo "[startup] ffmpeg installed" \
+        || echo "[startup] WARNING: ffmpeg install failed — WebM uploads will not decode"
+fi
 
+cd "$(dirname "$0")"
+echo "[startup] launching gunicorn on port ${PORT:-8000} from $(pwd)"
 exec gunicorn \
-    --bind=0.0.0.0:8000 \
+    --bind=0.0.0.0:${PORT:-8000} \
     --timeout 180 \
     --workers 1 \
     --threads 2 \
+    --access-logfile - \
+    --error-logfile - \
     app:app
