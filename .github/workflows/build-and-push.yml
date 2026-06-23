@@ -59,3 +59,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Disable provenance + SBOM attestations. They produce a multi-entry
+          # manifest list (linux/amd64 + unknown/unknown) which Azure App
+          # Service's container runtime can't parse — it errors with
+          # ContainerCreateFailure on pull.
+          provenance: false
+          sbom: false
+          platforms: linux/amd64
