@@ -1,0 +1,28 @@
+# Keep the build context (and final image) small + predictable.
+
+.git
+.gitignore
+.github
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# User-data — must NEVER ship in an image
+vinyl_analyzer/data/*.db
+vinyl_analyzer/data/*.xlsx
+vinyl_log_*.xlsx
+
+# Docs (not needed at runtime)
+*.md
+README.md
