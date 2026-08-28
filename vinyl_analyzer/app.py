@@ -96,6 +96,13 @@ def init_db() -> None:
                 conn.execute(f"ALTER TABLE tracks ADD COLUMN {col} {decl}")
 
 
+# Initialise the schema at import time, not just under `__main__`.
+# Under gunicorn this module is imported (__name__ == "app"), so the
+# `if __name__ == "__main__"` block at the bottom never runs — which
+# previously left the `tracks` table missing in every container deploy.
+init_db()
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
