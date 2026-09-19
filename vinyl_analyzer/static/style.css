@@ -414,3 +414,22 @@ td .delete:hover { color: var(--bad); }
   text-align: center;
   padding: 24px 0;
 }
+
+
+/* Attribution footer. The GetSongBPM link is a condition of their free API
+   terms — do not remove it while that provider is in use. */
+.site-footer {
+  margin: 3rem auto 1.5rem;
+  padding: 1.25rem 1rem 0;
+  max-width: 1100px;
+  border-top: 1px solid rgba(128, 128, 128, 0.22);
+  text-align: center;
+}
+.site-footer p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  opacity: 0.7;
+}
+.site-footer a { color: inherit; text-decoration: underline; }
+.site-footer a:hover { opacity: 1; }

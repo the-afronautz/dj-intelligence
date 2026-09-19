@@ -16,6 +16,12 @@ override) for tracks that fool automatic detection.
 See [`vinyl_analyzer/README.md`](./vinyl_analyzer/README.md) for setup,
 architecture, and a file-by-file walkthrough.
 
+## Data credits
+
+Tempo and musical-key data in the catalogue lookup tool is sourced in part from
+[GetSongBPM](https://getsongbpm.com), alongside MusicBrainz, AcousticBrainz and
+Deezer.
+
 ## License
 
 Personal project — no license specified. Ask before reusing.

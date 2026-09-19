@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# djkeys — album -> BPM + Camelot table.
+#
+#   djkeys "Young Thug" "JEFFERY"
+#   djkeys "Young Thug" "JEFFERY" --release-mbid 6c8da063-2c3c-49ca-9f55-553ec642c71d
+#   djkeys --batch albums.txt          # one "Artist | Album" per line
+#   djkeys --merge "Young Thug" "JEFFERY"   # fold in a filled-out gaps CSV
+#
+# Defaults that make runs repeatable:
+#   cache  -> vinyl_analyzer/data/tracks.db  (shared with the Flask app)
+#   output -> <project>/Keys/
+set -euo pipefail
+
+PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CATALOG="$PROJECT/vinyl_analyzer/catalog"
+# Same DB file the Flask app uses, so web-sourced values and your own
+# mic analysis live side by side (separate tables, they never collide).
+DB="${DJKEYS_DB:-$PROJECT/vinyl_analyzer/data/tracks.db}"
+OUTDIR="${DJKEYS_OUT:-$PROJECT/Keys}"
+mkdir -p "$OUTDIR" "$(dirname "$DB")"
+
+slug() { echo "$1" | tr -cs '[:alnum:]-_' '_' | sed 's/_*$//'; }
+
+run_one() {
+  local artist="$1" album="$2"; shift 2
+  local base; base="$(slug "$artist")_$(slug "$album")_keys"
+  python3 "$CATALOG/cli.py" \
+    --artist "$artist" --album "$album" \
+    --db "$DB" \
+    --out "$OUTDIR/$base.xlsx" \
+    --gaps "$OUTDIR/${base}_gaps.csv" \
+    "$@"
+}
+
+case "${1:-}" in
+  --batch)
+    [ -f "${2:-}" ] || { echo "usage: djkeys --batch <file>   (lines: Artist | Album)" >&2; exit 2; }
+    while IFS='|' read -r artist album; do
+      artist="$(echo "$artist" | sed 's/^ *//;s/ *$//')"
+      album="$(echo "$album"  | sed 's/^ *//;s/ *$//')"
+      [ -z "$artist" ] && continue
+      case "$artist" in \#*) continue;; esac
+      run_one "$artist" "$album" --markdown || echo "  !! failed: $artist / $album" >&2
+      echo
+    done < "$2"
+    ;;
+  --merge)
+    artist="$2"; album="$3"
+    base="$(slug "$artist")_$(slug "$album")_keys"
+    run_one "$artist" "$album" --merge-gaps "$OUTDIR/${base}_gaps.csv" --markdown
+    ;;
+  ""|-h|--help)
+    sed -n '2,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    ;;
+  *)
+    run_one "$@"
+    ;;
+esac

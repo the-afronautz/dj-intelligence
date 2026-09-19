@@ -18,3 +18,16 @@ venv/
 **/data/*.db
 **/data/*.xlsx
 vinyl_log_*.xlsx
+
+# Azure infrastructure exports — contain subscription IDs
+app.yaml
+app.yaml.bak
+
+# Business / client documents — not code
+Afronautz_Intern_Scope.html
+NSBE_DJ_Services_Agreement*.docx
+
+# Catalog output
+Keys/
+*.db-journal
+.fuse_hidden*
