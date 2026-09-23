@@ -27,7 +27,7 @@ to pull requests, issues, and electronic mailing lists.
 maintained by The Afronautz LLC.
 
 **"Maintainer"** means The Afronautz LLC, a limited liability company organized
-under the laws of the State of Georgia, United States.
+under the laws of the State of Florida, United States.
 
 ---
 
@@ -101,7 +101,7 @@ become aware that would make these representations inaccurate in any respect.
 
 ## 7. Governing law
 
-This agreement is governed by the laws of the State of Georgia, United States,
+This agreement is governed by the laws of the State of Florida, United States,
 without regard to its conflict of law provisions.
 
 ---
