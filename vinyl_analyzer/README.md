@@ -50,11 +50,15 @@ the BPM was set.
 
 ```bash
 cd "vinyl_analyzer"
-pip3 install --user flask librosa openpyxl
+pip3 install -r requirements.txt
 ```
 
 (librosa pulls in numpy, scipy, soundfile, audioread, etc. — about ~300 MB of
-deps the first time.)
+deps the first time. A virtualenv or conda env is recommended.)
+
+If you only want the **catalog lookup CLI** and not the mic-capture app, you
+can skip all of that — it needs nothing beyond the standard library and
+`openpyxl`. See [`catalog/README.md`](./catalog/README.md).
 
 ## Run it
 
@@ -67,6 +71,31 @@ Then open <http://127.0.0.1:5057/> in Safari or Chrome. The first time the
 browser will ask for microphone permission — **allow it for this site**.
 
 The server listens on `127.0.0.1` only, so nothing leaves your laptop.
+
+### In Docker
+
+The deployed image is built from the `Dockerfile` at the repo root. Always
+verify a container change locally before pushing — a local run takes seconds,
+cloud log archaeology takes minutes:
+
+```bash
+docker build -t vinyl-test .
+docker run --rm -p 8000:8000 vinyl-test
+```
+
+On Apple Silicon, add `--platform linux/amd64` when running the *published*
+image, which is amd64-only.
+
+### The catalog CLI
+
+Separate from the mic app: give it an artist and album, get back an ordered
+track table with BPM and Camelot key, plus an `.xlsx`.
+
+```bash
+./djkeys "Young Thug" "JEFFERY"
+```
+
+Full documentation in [`catalog/README.md`](./catalog/README.md).
 
 ## Tips for accurate detection
 
@@ -154,7 +183,7 @@ returns JSON → JS renders → SQLite stores**.
 
 ### `app.py` — Flask server, routes, SQLite, Excel export
 
-The HTTP layer. About 200 lines. Defines:
+The HTTP layer. About 300 lines. Defines:
 
 - **Database setup** (`init_db`). Creates the `tracks` table on first run;
   also runs an idempotent migration that adds new columns to old databases
@@ -178,7 +207,7 @@ The HTTP layer. About 200 lines. Defines:
 
 ### `analyzer.py` — BPM + key + Camelot detection
 
-The DSP. About 290 lines, pure Python, depends on `librosa`, `numpy`, and
+The DSP. About 430 lines, pure Python, depends on `librosa`, `numpy`, and
 `scipy`. The two public entry points are `analyze_bytes(audio_bytes, suffix)`
 and `analyze_samples(y, sr)`; both return an `AnalysisResult` dataclass.
 
@@ -218,11 +247,11 @@ Loads `static/style.css` and `static/app.js` via Flask's `url_for`.
 
 Dark theme tuned for late-night DJ workflows. CSS custom properties at the
 top define the palette and component tokens; everything below uses them. No
-external CSS framework. About 300 lines.
+external CSS framework. About 430 lines.
 
 ### `static/app.js` — Recording, upload, library rendering
 
-The frontend logic, ~500 lines, no framework. Organised in one IIFE so
+The frontend logic, ~550 lines, no framework. Organised in one IIFE so
 nothing leaks to the global scope. Responsibilities:
 
 - **Recording lifecycle.** `getUserMedia` → `MediaRecorder` → blob → upload.
@@ -251,6 +280,13 @@ other tool that speaks SQLite.
 Everything in `data/` is user data. Safe to back up by copying the folder;
 safe to wipe to start fresh.
 
+The same file also holds the catalog module's `catalog_albums` and
+`catalog_tracks` tables. They are deliberately separate from `tracks` — web
+lookups and your own mic analysis never overwrite each other.
+
+The location can be overridden with `VINYL_DATA_DIR`; the deployed container
+sets it to `/home/data`, an Azure Files mount that survives scale-to-zero.
+
 ## How to recreate from scratch
 
 If you ever lose the source or want to rebuild from notes:
@@ -273,7 +309,7 @@ If you ever lose the source or want to rebuild from notes:
 2. **Install dependencies:**
 
    ```bash
-   pip3 install --user flask librosa openpyxl
+   pip3 install -r requirements.txt
    ```
 
 3. **Write `analyzer.py` first.** It has no Flask dependency, so you can
