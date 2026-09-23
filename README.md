@@ -24,4 +24,8 @@ Deezer.
 
 ## License
 
-Personal project — no license specified. Ask before reusing.
+MIT — see [LICENSE](./LICENSE).
+
+Contributions are welcome. Contributors sign a short
+[CLA](./CLA.md) so the project can keep its licensing options open;
+you retain copyright in everything you write.
